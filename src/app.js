@@ -14,7 +14,9 @@ app.use(express.static("public"))
 app.use(cookieParser())
 //routes import
 import userRouter from './routes/user.route.js'
+import healthcheckRouter from "./routes/healthcheck.route.js"
 //route declaration
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/healthcheck", healthcheckRouter)
 // http://localhost:8000/users/api/v1/users/register
 export {app}
