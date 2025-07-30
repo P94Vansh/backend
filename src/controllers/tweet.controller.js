@@ -33,11 +33,19 @@ const updateTweet = asyncHandler(async (req, res) => {
     //TODO: update tweet
     const {tweetId}=req.params
     const {newContent}=req.body
+    const {_id}=req.user
     if(!tweetId){
         throw new ApiError(400,"Tweet is required")
     }
     if(!newContent){
         throw new ApiError(400,"new Content is required")
+    }
+    const tweet=await Tweet.findById(tweetId)
+    if(!tweet){
+        throw new ApiError(400,"Cannot find tweet")
+    }
+    if(String(_id)!==String(tweet.owner)){
+        throw new ApiError(401,"User is not allowed to modify tweet")
     }
     const newTweet=await Tweet.findByIdAndUpdate(tweetId,{$set:{content:newContent}},{new:true})
     if(!newTweet){
@@ -48,8 +56,16 @@ const updateTweet = asyncHandler(async (req, res) => {
 
 const deleteTweet = asyncHandler(async (req, res) => {
     const {tweetId}=req.params
+    const {_id}=req.user
     if(!tweetId){
         return new ApiError(401,"tweet id is required")
+    }
+    const tweet=await Tweet.findById(tweetId)
+    if(!tweet){
+        throw new ApiError(400,"Cannot find tweet")
+    }
+    if(String(_id)!==String(tweet.owner)){
+        throw new ApiError(401,"User is not allowed to delete tweet")
     }
     const deletedTweet= await Tweet.findByIdAndDelete(tweetId)
     if(!deletedTweet){
