@@ -82,7 +82,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     if(!videoId){
         throw new ApiError(400,"Need Correct Video Id")
     }
-    const video=await Video.findById(videoId)
+    
     if(!video){
         throw new ApiError(404,"Invalid Video Id")
     }
@@ -95,6 +95,13 @@ const updateVideo = asyncHandler(async (req, res) => {
     if(!videoId){
         return new ApiError(400,"Video id is required")
     }
+    const video=await Video.findById(videoId)
+    const {_id}=req.user
+    const stringId=String(_id)
+    const videoOwnerStr=String(video.owner)
+    if(stringId!=videoOwnerStr){
+        throw new ApiError(400,"Only owner can change the video")
+    }
     const {title,description}=req.body
     if(!title){
         return new ApiError(400,"Title is required")
@@ -104,7 +111,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
     const thumbnail=req.file
     const cloudinaryres=await uploadOnCloudinary(thumbnail.path)
-    const video=await Video.findByIdAndUpdate(videoId,{
+    const videonew=await Video.findByIdAndUpdate(videoId,{
         title,
         description,
         thumbnail:cloudinaryres.url
@@ -112,18 +119,25 @@ const updateVideo = asyncHandler(async (req, res) => {
     if(!video){
         throw new ApiError(500,"Internal Server Error")
     }
-    return res.status(200).json(new ApiResponse(200,video,"Video updated successfully"))
+    return res.status(200).json(new ApiResponse(200,videonew,"Video updated successfully"))
 })
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    const video=await Video.findById(videoId)
+    const {_id}=req.user
+    const stringId=String(_id)
+    const videoOwnerStr=String(video.owner)
+    if(stringId!=videoOwnerStr){
+        throw new ApiError(400,"Only owner can change the video")
+    }
     if(!videoId){
         throw new ApiError(400,"video id is required")
     }
-    const video=await Video.findByIdAndDelete(videoId)
+    const videonew=await Video.findByIdAndDelete(videoId)
     if(!video){
         throw new ApiError(500,"Unable to delete video")
     }
-    return res.status(200).json(new ApiResponse(200,video,"Video Deleted Successfully"))
+    return res.status(200).json(new ApiResponse(200,videonew,"Video Deleted Successfully"))
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
